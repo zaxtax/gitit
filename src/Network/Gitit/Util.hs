@@ -39,6 +39,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Network.Gitit.Types
 import qualified Control.Exception as E
+import Text.Regex
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc (Extension(..), Extensions, getDefaultExtensions, enableExtension)
 import Network.URL (encString)
@@ -80,9 +81,11 @@ orIfNull lst backup = if null lst then backup else lst
 
 -- | Split a string containing a list of categories.
 splitCategories :: String -> [String]
-splitCategories = words . map puncToSpace . trim
-     where puncToSpace x | x `elem` ['.',',',';',':'] = ' '
+splitCategories s = map trim $ splitRegex (mkRegex (delim s)) s
+     where puncToSpace x | x `elem` ['.',',',':'] = ' '
            puncToSpace x = x
+           delim s | notElem ',' s = " "
+           delim _                 = ","
 
 -- | Trim leading and trailing spaces.
 trim :: String -> String
