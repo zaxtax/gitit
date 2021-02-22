@@ -68,7 +68,7 @@ import System.FilePath
 import Network.Gitit.State
 import Text.XHtml hiding ( (</>), dir, method, password, rev )
 import qualified Text.XHtml as X ( method )
-import Data.List (intercalate, intersperse, delete, nub, sortBy, find, isPrefixOf, inits, sort, (\\))
+import Data.List (isInfixOf, intercalate, intersperse, delete, nub, sortBy, find, isPrefixOf, inits, sort, (\\))
 import Data.List.Split (wordsBy)
 import Data.Maybe (fromMaybe, mapMaybe, isJust, catMaybes)
 import Data.Ord (comparing)
@@ -492,6 +492,15 @@ getDiff fs file from to = do
               " to " ++ fromMaybe "current" to) +++
            pre ! [theclass "diff"] << map diffLineToHtml rawDiff
 
+defaultNewPage :: String -> String
+defaultNewPage title =
+  unlines ["---",
+           "format: markdown",
+           "categories:",
+           "toc: no",
+           "title: " <> title,
+           "..."]
+
 editPage :: Handler
 editPage = withData editPage'
 
@@ -510,7 +519,7 @@ editPage' params = do
             r <- liftIO $ latest fs (pathForPage page $ defaultExtension cfg) >>= revision fs
             return (Just $ revId r, c))
         (\e -> if e == NotFound
-                  then return (Nothing, "")
+                  then return (Nothing, defaultNewPage page)
                   else E.throwIO e)
   (mbRev, raw) <- case pEditedText params of
                          Nothing -> liftIO getRevisionAndText
