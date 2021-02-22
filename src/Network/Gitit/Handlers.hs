@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 module Network.Gitit.Handlers (
                         handleAny
                       , debugHandler
+                      , createFromStatic
                       , randomPage
                       , discussPage
                       , createPage
@@ -107,6 +108,12 @@ debugHandler = withData $ \(params :: Params) -> do
   liftIO $ logM "gitit" DEBUG $ "Page = '" ++ page ++ "'\n" ++
               show params
   mzero
+
+createFromStatic :: FilePath -> Handler
+createFromStatic path = do
+  cfg <- getConfig
+  (liftIO $ readFile $ staticDir cfg </> path) >>=
+    notFound . setContentType "text/html; charset=utf-8" . toResponse
 
 randomPage :: Handler
 randomPage = do

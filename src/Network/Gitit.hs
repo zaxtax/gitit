@@ -207,6 +207,7 @@ wikiHandlers =
   , guardPath isSourceCode >> method GET >> showHighlightedSource
   , handleAny
   , notFound =<< (guardPath isPage >> createPage)
+  , createFromStatic "404.html"
   ]
 
 -- | Recompiles the gitit templates.
