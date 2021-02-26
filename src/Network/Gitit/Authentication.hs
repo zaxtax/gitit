@@ -350,10 +350,12 @@ loginForm dest = do
       , textfield "destination" ! [thestyle "display: none;", value dest]
       , submit "login" "Login" ! [intAttr "tabindex" 3]
       ] +++
-    -- p << [ stringToHtml "If you do not have an account, "
-    --     , anchor ! [href $ base' ++ "/_register?" ++
-    --       urlEncodeVars [("destination", encodeString dest)]] << "click here to get one."
-    --     ] +++
+    if not (disableRegistration cfg)
+       then noHtml
+       else p << [ stringToHtml "If you do not have an account, "
+                 , anchor ! [href $ base' ++ "/_register?" ++
+                     urlEncodeVars [("destination", encodeString dest)]] << "click here to get one."
+                 ] +++
     if null (mailCommand cfg)
        then noHtml
        else p << [ stringToHtml "If you forgot your password, "
@@ -410,10 +412,17 @@ registerUserForm = registerForm >>=
                     pgTitle = "Register for an account"
                     }
 
-formAuthHandlers :: [Handler]
-formAuthHandlers =
-  -- [ dir "_register"  $ method GET >> registerUserForm
-  -- , dir "_register"  $ method POST >> withData registerUser
+regAuthHandlers :: [Handler]
+regAuthHandlers =
+  [ dir "_register"  $ method GET >> registerUserForm
+  , dir "_register"  $ method POST >> withData registerUser
+  ]
+
+formAuthHandlers :: Bool -> [Handler]
+formAuthHandlers disableReg =
+  (if disableReg
+    then []
+    else regAuthHandlers) ++
   [ dir "_login"     $ method GET  >> loginUserForm
   , dir "_login"     $ method POST >> withData loginUser
   , dir "_logout"    $ method GET  >> withData logoutUser
